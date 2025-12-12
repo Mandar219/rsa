@@ -160,7 +160,6 @@ class RSAEnv(gym.Env):
             "episode_blocking_rate": self.get_episode_blocking_rate(),
         }
 
-        # Gymnasium requires a 5-tuple: obs, reward, terminated, truncated, info
         terminated = done
         truncated = False
 

@@ -18,7 +18,9 @@ from rsaenv import RSAEnv
 # ---------- Callback for logging ----------
 
 class EpisodeStatsCallback(BaseCallback):
-    """Collect episode returns and blocking rates during training."""
+    """
+    Collect episode returns and blocking rates during training.
+    """
 
     def __init__(self, verbose: int = 0):
         super().__init__(verbose)
@@ -27,16 +29,21 @@ class EpisodeStatsCallback(BaseCallback):
         self._current_return: float = 0.0
 
     def _on_step(self) -> bool:
-        # self.locals["rewards"] is a vector because of VecEnv (DummyVecEnv).
+        # VecEnv: rewards / dones / infos are arrays (n_envs = 1 here)
         reward = float(self.locals["rewards"][0])
         done = bool(self.locals["dones"][0])
+        info = self.locals["infos"][0]
+
         self._current_return += reward
 
         if done:
-            env: RSAEnv = self.training_env.envs[0]  # unwrap DummyVecEnv
+            # Episode just ended
             self.episode_returns.append(self._current_return)
             self._current_return = 0.0
-            self.episode_blocking_rates.append(env.get_episode_blocking_rate())
+
+            # Read blocking rate that env put into info
+            br = info.get("episode_blocking_rate", 0.0)
+            self.episode_blocking_rates.append(float(br))
 
         return True
 
